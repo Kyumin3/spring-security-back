@@ -14,6 +14,6 @@ public interface ApiPermissionRepository extends JpaRepository<ApiPermission, Lo
     List<ApiPermission> findAll();
 
     @Modifying
-    @Query("UPDATE ApiPermission u SET u.roles = :roles, u.methods = :methods, u.path = :path WHERE u.id = :id")
-    int updateApiInfoById(@Param("id") String id, @Param("roles") String roles, @Param("methods") String methods, @Param("path") String path);
+    @Query("UPDATE ApiPermission u SET u.roles = :roles, u.methods = :methods, u.path = :path, u.description =:description WHERE u.id = :id")
+    int updateApiInfoById(@Param("id") String id, @Param("roles") String roles, @Param("methods") String methods, @Param("path") String path, @Param("description") String description);
 }

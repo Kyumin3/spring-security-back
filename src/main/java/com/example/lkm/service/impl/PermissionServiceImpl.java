@@ -23,7 +23,7 @@ public class PermissionServiceImpl implements PermissionService {
     @Override
     public Map<String, Object> updateApiInfo(String id, ApiPermission apiPermission) {
 
-        apiPermissionRepository.updateApiInfoById(id,apiPermission.getRoles(),apiPermission.getMethods(),apiPermission.getPath());
+        apiPermissionRepository.updateApiInfoById(id,apiPermission.getRoles(),apiPermission.getMethods(),apiPermission.getPath(), apiPermission.getDescription());
 
         return Map.of();
     }

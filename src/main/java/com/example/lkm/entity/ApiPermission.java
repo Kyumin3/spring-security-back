@@ -27,4 +27,7 @@ public class ApiPermission {
 
     @Column(name = "PATH")
     private String path;
+
+    @Column(name = "DESCRIPTION")
+    private String description;
 }
