@@ -45,7 +45,7 @@ public class PermissionCacheService {
                     !p.getMethods().contains(method)) continue;
 
 
-            return true; // ✅ 경로 + 역할 + 메서드 모두 만족 → 허용
+            return true; // 경로 + 역할 + 메서드 모두 만족 → 허용
         }
 
         return !matchedAnyPath;

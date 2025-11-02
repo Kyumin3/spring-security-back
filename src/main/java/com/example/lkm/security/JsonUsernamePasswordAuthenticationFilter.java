@@ -1,5 +1,6 @@
 package com.example.lkm.security;
 
+import com.example.lkm.security.jwt.JwtTokenProvider;
 import com.example.lkm.vo.UserVo;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
@@ -8,7 +9,7 @@ import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -17,17 +18,19 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 
 import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@RequiredArgsConstructor
 public class JsonUsernamePasswordAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
+    private final JwtTokenProvider jwtTokenProvider;
 
-    public JsonUsernamePasswordAuthenticationFilter(AuthenticationManager authenticationManager) {
+    public JsonUsernamePasswordAuthenticationFilter(AuthenticationManager authenticationManager, JwtTokenProvider jwtTokenProvider) {
+        this.jwtTokenProvider = jwtTokenProvider;
         super.setAuthenticationManager(authenticationManager);
         setFilterProcessesUrl("/api/login"); // 로그인 경로 설정
     }
@@ -60,7 +63,18 @@ public class JsonUsernamePasswordAuthenticationFilter extends UsernamePasswordAu
                         new UsernamePasswordAuthenticationToken(userVo.getUserId(), userVo.getPassword());
 
                 setDetails(request, authRequest);
-                return this.getAuthenticationManager().authenticate(authRequest);
+//                return this.getAuthenticationManager().authenticate(authRequest);
+
+                // 인증 시도
+                Authentication authentication = this.getAuthenticationManager().authenticate(authRequest);
+
+                // 인증 성공 시 JWT 생성
+                String jwtToken = jwtTokenProvider.createToken(authentication);
+
+                // JWT를 응답 헤더에 추가
+                response.setHeader("Authorization", "Bearer " + jwtToken);
+
+                return authentication;
             } catch (IOException e) {
                 throw new AuthenticationServiceException("JSON 파싱 실패", e);
             }
@@ -79,8 +93,8 @@ public class JsonUsernamePasswordAuthenticationFilter extends UsernamePasswordAu
         SecurityContextHolder.setContext(context);
 
         // 세션에 SecurityContext 저장
-        HttpSession session = request.getSession(true);
-        session.setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, context);
+//        HttpSession session = request.getSession(true);
+//        session.setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, context);
 
         response.setStatus(HttpServletResponse.SC_OK);
         response.setContentType("application/json; charset=UTF-8");
@@ -96,18 +110,20 @@ public class JsonUsernamePasswordAuthenticationFilter extends UsernamePasswordAu
         var responseBody = new java.util.HashMap<String, Object>();
         responseBody.put("message", "로그인 성공");
         responseBody.put("userData", userData);
+//        responseBody.put("token", jwtToken);
 
         response.getWriter().write(objectMapper.writeValueAsString(responseBody));
     }
 
     @Override
     protected void unsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response, AuthenticationException failed) throws IOException, ServletException {
-        super.unsuccessfulAuthentication(request, response, failed);
-        logger.warn("로그인 실패 - 이유: {}" + failed.getMessage());
-
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         response.setContentType("application/json; charset=UTF-8");
         response.getWriter().write("{\"error\": \"로그인 실패\"}");
+
+        super.unsuccessfulAuthentication(request, response, failed);
+        logger.warn("로그인 실패 - 이유: {}" + failed.getMessage());
+
     }
 
 }

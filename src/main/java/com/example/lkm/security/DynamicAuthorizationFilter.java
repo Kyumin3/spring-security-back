@@ -31,7 +31,6 @@ public class DynamicAuthorizationFilter extends OncePerRequestFilter {
         List<String> roles = getUserRolesFromSecurityContext(); // 사용자 권한 추출
 
         if (!permissionCacheService.isAuthorized(path, method, roles)) {
-            System.out.println("여기 접근 안딜때 뜨는거임.....");
             response.sendError(HttpServletResponse.SC_FORBIDDEN, "접근 권한이 없습니다.");
             return;
         }

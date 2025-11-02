@@ -5,7 +5,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -20,9 +19,8 @@ public class LoginController {
     public ResponseEntity<?> checkSession(Authentication authentication, HttpServletRequest request) {
 
         //  토큰을 명시적으로 접근
-        CsrfToken csrfToken = (CsrfToken) request.getAttribute("_csrf");
-        csrfToken.getToken();
-
+//        CsrfToken csrfToken = (CsrfToken) request.getAttribute("_csrf");
+//        csrfToken.getToken();
 
         if (authentication != null && authentication.isAuthenticated()) {
 

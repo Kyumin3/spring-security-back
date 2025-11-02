@@ -1,5 +1,7 @@
 package com.example.lkm.security;
 
+import com.example.lkm.security.jwt.JwtAuthenticationFilter;
+import com.example.lkm.security.jwt.JwtTokenProvider;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -14,7 +16,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 import org.springframework.web.cors.CorsConfiguration;
 
@@ -29,6 +30,7 @@ public class WebSecurityConfig {
 
     private final CustomUserDetailService customUserDetailService;
     private final DynamicAuthorizationFilter dynamicAuthorizationFilter;
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
 
     @Bean
@@ -37,11 +39,10 @@ public class WebSecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http, AuthenticationManager authenticationManager) throws Exception {
-        logger.debug("여기옴??");
+    public SecurityFilterChain filterChain(HttpSecurity http, AuthenticationManager authenticationManager, JwtTokenProvider jwtTokenProvider) throws Exception {
 
         JsonUsernamePasswordAuthenticationFilter jsonFilter =
-                new JsonUsernamePasswordAuthenticationFilter(authenticationManager);
+                new JsonUsernamePasswordAuthenticationFilter(authenticationManager,jwtTokenProvider);
 
         CsrfTokenRequestAttributeHandler handler = new CsrfTokenRequestAttributeHandler();
         handler.setCsrfRequestAttributeName("_csrf"); // 기본 이름
@@ -50,23 +51,26 @@ public class WebSecurityConfig {
         http
                 .cors(cors -> cors.configurationSource(request -> {
                     CorsConfiguration config = new CorsConfiguration();
-                    config.setAllowedOrigins(List.of("http://localhost:3000")); // ✅ 프론트 주소
+                    config.setAllowedOrigins(List.of("http://localhost:3000"));
                     config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-                    config.setAllowedHeaders(List.of("Content-Type", "X-XSRF-TOKEN"));
+                    config.setAllowedHeaders(List.of("Content-Type", "X-XSRF-TOKEN", "Authorization"));
+                    config.setExposedHeaders(List.of("Authorization"));
                     config.setAllowCredentials(true);
                     return config;
                 }))
-                .csrf(csrf -> csrf
-                        .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-                        .csrfTokenRequestHandler(handler)
-                        .ignoringRequestMatchers("/h2-console/**", "/api/login", "/api/logout", "/api/check-username","/api/save-user")
-                )
-                .sessionManagement(session -> session
-                        .invalidSessionUrl("/")
-                        .maximumSessions(1)
-                        .maxSessionsPreventsLogin(false)
-                )
-//                .csrf(csrf -> csrf.disable())
+                //새션인증시 사용
+//                .csrf(csrf -> csrf
+//                        .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+//                        .csrfTokenRequestHandler(handler)
+//                        .ignoringRequestMatchers("/h2-console/**", "/api/login", "/api/logout", "/api/check-username","/api/save-user")
+//                )
+//                .sessionManagement(session -> session
+//                        .invalidSessionUrl("/")
+//                        .maximumSessions(1)
+//                        .maxSessionsPreventsLogin(false)
+//                )
+                .csrf(csrf -> csrf.disable())
+                //api호출 권한 설정
 //                .authorizeHttpRequests(auth -> auth
 //                        .requestMatchers("/h2-console/**").permitAll()
 //                        .requestMatchers("/api/api1").hasRole("USER")
@@ -76,11 +80,12 @@ public class WebSecurityConfig {
 //                        .requestMatchers("/h2-console/**", "/api/login", "/api/logout", "/api/save-user").permitAll()
 //                        .anyRequest().authenticated()
 //                )
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(dynamicAuthorizationFilter, UsernamePasswordAuthenticationFilter.class)
 
 //                .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
 //                .formLogin(form -> form
-//                        .loginProcessingUrl("/api/login") // ✅ 이 경로로 POST 요청 시 자동 인증
+//                        .loginProcessingUrl("/api/login") // 이 경로로 POST 요청 시 자동 인증
 //                        .successHandler((request, response, authentication) -> {
 //                            response.setStatus(HttpServletResponse.SC_OK);
 //                            logger.debug("로그인 성공");
@@ -98,8 +103,9 @@ public class WebSecurityConfig {
                             response.getWriter().write("{\"message\": \"로그아웃 성공\"}");
                             logger.debug("로그아웃 성공");
                         })
-                        .invalidateHttpSession(true)
-                        .deleteCookies("JSESSIONID")
+                        //세션기반일때만 사용
+//                        .invalidateHttpSession(true)
+//                        .deleteCookies("JSESSIONID")
                 )
                 .addFilterAt(jsonFilter, UsernamePasswordAuthenticationFilter.class)
                 .headers(headers -> headers.frameOptions(frame -> frame.disable()));
