@@ -21,13 +21,13 @@ public class CustomUserDetailService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        logger.debug("아이디입니다...:::{}", username);
+
         UserEntity user = userRepository.findByUserId(username)
                 .orElseThrow(() ->{
                     logger.warn("로그인 실패 - 존재하지 않는 사용자: {}", username);
                     return new UsernameNotFoundException("사용자를 찾을수 없습니다.");
                 });
-        logger.debug("f로로로롤롤...:::{}", user.getRole());
+
         String[] roles = user.getRole().split(",");
         return User.withUsername(user.getUserId())
                 .password(user.getPassword())

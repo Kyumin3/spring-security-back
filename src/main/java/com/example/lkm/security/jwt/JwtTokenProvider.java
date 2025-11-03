@@ -79,7 +79,17 @@ public class JwtTokenProvider {
     public boolean validateToken(String token) {
         if (token == null || token.isBlank()) return false;
         try {
-            Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
+            Claims claims = Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody();
+            Date now = new Date();
+            Date issuedAt = claims.getIssuedAt();
+            Date expiration = claims.getExpiration();
+
+            long elapsedSeconds = (now.getTime() - issuedAt.getTime()) / 1000;
+            long remainingSeconds = (expiration.getTime() - now.getTime()) / 1000;
+
+            logger.info("토큰 발급 후 경과 시간: {}초", elapsedSeconds);
+            logger.info("토큰 만료까지 남은 시간: {}초", remainingSeconds);
+
             return true;
         } catch (JwtException | IllegalArgumentException e) {
             logger.error("JWT 검증 실패", e);
