@@ -15,6 +15,8 @@ public interface UserService {
 
     public boolean isUserIdDuplicate(String userId);
 
+    public boolean isUserEmailDuplicate(String email);
+
     public UserEntity saveUser(UserVo vo);
 
 }

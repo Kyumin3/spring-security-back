@@ -37,7 +37,14 @@ public class UserController {
         boolean isDuplicate = userService.isUserIdDuplicate(userId);
         Map<String, Boolean> response = Map.of("isDuplicate", isDuplicate);
         return ResponseEntity.ok(response);
-    }
+    };
+
+    @GetMapping("/check-email")
+    public ResponseEntity<Map<String, Boolean>> checkEmailDuplicate(@RequestParam String email) {
+        boolean isDuplicate = userService.isUserEmailDuplicate(email);
+        Map<String, Boolean> response = Map.of("isDuplicate", isDuplicate);
+        return ResponseEntity.ok(response);
+    };
 
     @PostMapping("/save-user")
     public ResponseEntity<?> createUser(@RequestBody UserVo vo) {

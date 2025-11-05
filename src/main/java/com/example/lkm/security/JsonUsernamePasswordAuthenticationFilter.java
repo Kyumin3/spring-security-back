@@ -79,7 +79,7 @@ public class JsonUsernamePasswordAuthenticationFilter extends UsernamePasswordAu
                 throw new AuthenticationServiceException("JSON 파싱 실패", e);
             }
         }
-
+        // x-www-form-urlencoded, multipart/form-data만 대응됨
         return super.attemptAuthentication(request, response);
     }
 

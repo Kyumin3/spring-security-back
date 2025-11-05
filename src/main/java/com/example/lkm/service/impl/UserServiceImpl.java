@@ -73,6 +73,11 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public boolean isUserEmailDuplicate(String email) {
+        return userRepository.existsByEmail(email);
+    }
+
+    @Override
     public UserEntity saveUser(UserVo vo) {
         String encodedPassword  = passwordEncoder.encode((vo.getPassword()));
         UserEntity userEntity = new UserEntity();

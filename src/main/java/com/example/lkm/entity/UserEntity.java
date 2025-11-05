@@ -18,4 +18,5 @@ public class UserEntity {
     @JsonIgnore
     private String password;
     private String role;
+    private String email;
 }
