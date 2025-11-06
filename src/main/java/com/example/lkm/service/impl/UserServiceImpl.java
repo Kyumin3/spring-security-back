@@ -83,6 +83,7 @@ public class UserServiceImpl implements UserService {
         UserEntity userEntity = new UserEntity();
         userEntity.setUserId(vo.getUserId());
         userEntity.setPassword(encodedPassword);
+        userEntity.setEmail(vo.getEmail());
         userEntity.setRole("USER");
         return userRepository.save(userEntity);
     }

@@ -1,7 +1,5 @@
 package com.example.lkm.entity;
 
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -9,22 +7,24 @@ import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
+
 @Entity
-@Table(name = "USERS")
+@Table(name = "PWRESET_TOKEN")
 @Getter
 @Setter
-public class UserEntity {
+public class PasswordResetToken {
+
     @Id
+    @Column(name = "TOKEN")
+    private String token;
+
     @Column(name = "USER_ID")
     private String userId;
 
-    @JsonIgnore
-    @Column(name = "PASSWORD")
-    private String password;
+    @Column(name = "EXPIRES_AT")
+    private LocalDateTime expiresAt;
 
-    @Column(name = "ROLE")
-    private String role;
-
-    @Column(name = "EMAIL")
-    private String email;
+    @Column(name = "USED")
+    private boolean used;
 }

@@ -1,9 +1,6 @@
 package com.example.lkm.controller;
 
 import com.example.lkm.service.ResetPasswordService;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.JwtException;
-import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
@@ -45,15 +42,23 @@ public class ResetPasswordController {
 
     @PostMapping("/validate")
     public ResponseEntity<?> validateToken(@RequestBody Map<String, String> body) {
+//        String token = body.get("token");
+//        try {
+//            Claims claims = Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody();
+//            return ResponseEntity.ok("유효한 토큰입니다.");
+//        } catch (JwtException e) {
+//            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("토큰이 유효하지 않거나 만료되었습니다.");
+//        }
+
         String token = body.get("token");
-//        Claims claims = Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody();
+
         try {
-            Claims claims = Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody();
+            resetPasswordService.validateResetToken(token);
             return ResponseEntity.ok("유효한 토큰입니다.");
-        } catch (JwtException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("토큰이 유효하지 않거나 만료되었습니다.");
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
         }
-//        return ResponseEntity.ok("유효한 토큰입니다.");
+
     }
 
     @PostMapping("/update")
